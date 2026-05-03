@@ -1,0 +1,71 @@
+import React, { useState } from 'react';
+import { AnimatePresence } from 'motion/react';
+import Header from './components/Header';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import CategoryPage from './pages/CategoryPage';
+import Multimedia from './pages/Multimedia';
+import ArticleDetail from './components/ArticleDetail';
+import { QuizGame } from './components/QuizGame';
+import { chinhtriData, xahoiData, kinhteData, giaoducData, vanhoaData } from './data/mockData';
+import { NewsItem } from './types';
+import BackgroundMusic from './components/BackgroundMusic';
+
+export default function App() {
+  const [currentPath, setCurrentPath] = useState("/");
+  const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
+
+  const handleSelectArticle = (article: NewsItem) => {
+    setSelectedArticle(article);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderContent = () => {
+    if (selectedArticle) {
+      return <ArticleDetail article={selectedArticle} onBack={() => setSelectedArticle(null)} />;
+    }
+
+    switch (currentPath) {
+      case "/":
+        return <Home key="home" onSelectArticle={handleSelectArticle} />;
+      case "/chinh-tri":
+        return <CategoryPage key="chinh-tri" title="Chính trị" data={chinhtriData} onSelectArticle={handleSelectArticle} />;
+      case "/xa-hoi":
+        return <CategoryPage key="xa-hoi" title="Xã hội" data={xahoiData} onSelectArticle={handleSelectArticle} />;
+      case "/kinh-te":
+        return <CategoryPage key="kinh-te" title="Kinh tế" data={kinhteData} onSelectArticle={handleSelectArticle} />;
+      case "/giao-duc":
+        return <CategoryPage key="giao-duc" title="Giáo dục" data={giaoducData} onSelectArticle={handleSelectArticle} />;
+      case "/van-hoa":
+        return <CategoryPage key="van-hoa" title="Văn hóa" data={vanhoaData} onSelectArticle={handleSelectArticle} />;
+      case "/goc-nhin":
+        return <QuizGame key="quiz" />;
+      case "/da-phuong-tien":
+        return <Multimedia key="da-phuong-tien" />;
+      default:
+        return <Home key="default" onSelectArticle={handleSelectArticle} />;
+    }
+  };
+
+  const handleNavChange = (path: string) => {
+    setCurrentPath(path);
+    setSelectedArticle(null);
+  };
+
+  return (
+    <div className="min-h-screen text-gray-900 font-sans selection:bg-red-700 selection:text-white">
+      <Header />
+      <Navbar currentPath={currentPath} setCurrentPath={handleNavChange} />
+
+      <main className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <AnimatePresence mode="wait">
+          {renderContent()}
+        </AnimatePresence>
+      </main>
+
+      <Footer />
+      <BackgroundMusic />
+    </div>
+  );
+}

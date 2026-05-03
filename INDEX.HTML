@@ -1,0 +1,95 @@
+import React from 'react';
+import { motion } from 'motion/react';
+import NewsCard from '../components/NewsCard';
+import { NewsItem } from '../types';
+import ShareButtons from '../components/ShareButtons';
+import { useLanguage } from '../context/LanguageContext';
+import { FileText } from 'lucide-react';
+import { exportToWord } from '../services/wordExportService';
+
+interface CategoryPageProps {
+  title: string;
+  data: NewsItem[];
+  onSelectArticle: (article: NewsItem) => void;
+  additionalContent?: React.ReactNode;
+}
+
+const CategoryPage = ({ title, data, onSelectArticle, additionalContent }: CategoryPageProps) => {
+  const { language, t } = useLanguage();
+  const [isExporting, setIsExporting] = React.useState(false);
+
+  const handleExport = async () => {
+    if (data.length === 0) return;
+    setIsExporting(true);
+    try {
+      await exportToWord(data, language as 'vi' | 'en', title);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
+  return (
+    <motion.section 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="py-6"
+    >
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 border-b-4 border-red-700 pb-6">
+        <div>
+          <h2 className="text-4xl md:text-6xl font-serif font-black text-red-800 uppercase tracking-tighter">
+            {title}
+          </h2>
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-[0.2em] italic mt-2">
+            {language === 'en' ? 'Category & Documents' : 'Chuyên mục & Tư liệu'}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {data.length > 0 && (
+            <button 
+              onClick={handleExport}
+              disabled={isExporting}
+              className={`flex items-center gap-2 px-6 py-3 bg-red-700 text-white rounded-full font-bold hover:bg-black transition-all shadow-lg shadow-red-900/20 active:scale-95 ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isExporting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              ) : (
+                <FileText size={18} />
+              )}
+              {language === 'en' ? 'EXPORT CATEGORY' : 'XUẤT WORD CHUYÊN MỤC'}
+            </button>
+          )}
+        </div>
+      </div>
+    
+    <div className={`grid gap-10 ${
+      data.length === 2 
+        ? 'grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto' 
+        : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+    }`}>
+      {data.map((item) => (
+        <NewsCard key={item.id} {...item} onClick={() => onSelectArticle(item)} />
+      ))}
+    </div>
+
+    {data.length === 0 && (
+      <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+        <p className="text-gray-400 font-serif italic text-xl">
+          {language === 'en' ? 'Currently no data for this category...' : 'Hiện chưa có dữ liệu cho chuyên mục này...'}
+        </p>
+      </div>
+    )}
+
+    {additionalContent}
+
+    <div className="mt-16 pt-12 border-t border-gray-100 uppercase">
+      <ShareButtons title={`${language === 'en' ? 'Category' : 'Chuyên mục'}: ${title}`} />
+    </div>
+  </motion.section>
+);
+};
+
+export default CategoryPage;
